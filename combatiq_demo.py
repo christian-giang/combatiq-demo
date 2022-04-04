@@ -65,7 +65,15 @@ list_weightclasses = ['Featherweight','Lightweight','Welterweight','Middleweight
 
 weightclass = st.sidebar.selectbox("Select a weightclass:", list_weightclasses)
 
-df = pd.read_pickle(weightclass + '_streamlit.pkl')			
+#df = pd.read_pickle(weightclass + '_streamlit.pkl')			
+
+#read the pickle file
+picklefile = open(weightclass+'_streamlit.pkl', 'rb')
+#unpickle the dataframe
+df = pickle.load(picklefile)
+#close file
+picklefile.close()
+
 
 list_fighters = np.sort(df['FighterName'].unique())
 list_fighters = np.hstack(['*** Summary of data set ***',list_fighters])
