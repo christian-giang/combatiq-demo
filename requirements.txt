@@ -5,4 +5,4 @@ seaborn==0.10.1
 matplotlib==3.5.1
 click<=8.0.4
 pickle4==0.0.1
-pickleshare==0.7.5
+pickle5==0.0.12
