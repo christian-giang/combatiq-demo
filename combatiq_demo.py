@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pickle
 from math import pi
 from datetime import datetime
 
@@ -64,7 +65,14 @@ list_weightclasses = ['Featherweight','Lightweight','Welterweight','Middleweight
 
 weightclass = st.sidebar.selectbox("Select a weightclass:", list_weightclasses)
 
-df = pd.read_pickle(weightclass + '_streamlit.pkl')			
+#df = pd.read_pickle(weightclass + '_streamlit.pkl')			
+
+#read the pickle file
+picklefile = open(weightclass+'_streamlit.pkl', 'rb')
+#unpickle the dataframe
+df = pickle.load(picklefile)
+#close file
+picklefile.close()
 
 
 list_fighters = np.sort(df['FighterName'].unique())
