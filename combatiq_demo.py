@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pickle5 as pickle
+import pickle as pickle
 from math import pi
 from datetime import datetime
 
@@ -36,15 +36,18 @@ def plot_clusters(round):
 	angles = [n/float(n_cats) * 2 * pi for n in range(n_cats)]
 	angles +=angles[:1]
 
-	plt.polar(angles,values, marker='s', color='crimson')
+	plt.polar(angles,values, marker='s', color='crimson', label=df_fighter_tmp['FighterName'].values[0])
 	plt.fill(angles, values, alpha=0.3 , color='crimson')
-	plt.polar(angles,values_opp, marker='s' , color='dimgrey')
+	plt.polar(angles,values_opp, marker='s' , color='dimgrey', label=df_opp_tmp['FighterName'].values[0])
 	plt.fill(angles, values_opp, alpha=0.3, color='silver')
 	plt.xticks(angles[:-1], categories)
 	plt.title("ROUND " + str(round), loc='left', fontweight="bold")
 	if round==2:
-		plt.legend([df_fighter_tmp['FighterName'].values[0],df_opp_tmp['FighterName'].values[0]],bbox_to_anchor =(0.8, -0.15), ncol=1)
+		plt.legend(bbox_to_anchor =(0.8, -0.15), ncol=1)
+
 	ax.set_rlabel_position(0)
+
+
 
 	plt.yticks([0,1,2], color='grey', size=10)
 
