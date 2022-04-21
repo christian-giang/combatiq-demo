@@ -3,9 +3,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pickle5 as pickle
 from math import pi
 from datetime import datetime
+
+try:
+    import pickle5 as pickle
+except ImportError:
+    import pickle
 
 # *********** DEFINITION OF FUNCTIONS **************
 
