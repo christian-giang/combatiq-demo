@@ -74,7 +74,17 @@ weightclass = st.sidebar.selectbox("Select a weightclass:", list_weightclasses)
 
 
 if weightclass!= '*** Watch demo video ***':
-	df = pd.read_pickle(weightclass + '_streamlit.pkl')			
+
+	# IF WITH PICKLE
+	#df = pd.read_pickle(weightclass + '_streamlit.pkl')
+
+	# IF WITH PICKLE5			
+	#read the pickle file
+	picklefile = open(weightclass+'_streamlit.pkl', 'rb')
+	#unpickle the dataframe
+	df = pickle.load(picklefile)
+	#close file
+	picklefile.close()		
 
 
 	list_fighters = np.sort(df['FighterName'].unique())
