@@ -6,7 +6,7 @@ import seaborn as sns
 from math import pi
 from datetime import datetime
 
-import pickle
+import pickle5 as pickle
 
 # *********** DEFINITION OF FUNCTIONS **************
 
