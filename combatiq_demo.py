@@ -63,17 +63,17 @@ def plot_clusters(round):
 # ********** SIDEBAR ELEMENTS *******************
 
 st.sidebar.image("redciq-copy.png", width=100)
-st.sidebar.markdown("###### 	Once you have finished watching the video, you can experiment with the interactive Combat IQ Fight Analyzer tool below."
+st.sidebar.markdown("###### By choosing a weightclass below, you can experiment with the interactive Combat IQ Fight Analyzer tool."
 					" Currently, the analysis is limited to the five major weightclasses and fights with three rounds.")
 #st.title("Combat IQ Fight Analyzer")
 
 
-list_weightclasses = ['*** Watch demo video ***','Featherweight','Lightweight','Welterweight','Middleweight','Heavyweight']
+list_weightclasses = ['*** Upcoming fights ***','Featherweight','Lightweight','Welterweight','Middleweight','Heavyweight']
 
 weightclass = st.sidebar.selectbox("Select a weightclass:", list_weightclasses)
 
 
-if weightclass!= '*** Watch demo video ***':
+if weightclass!= '*** Upcoming fights ***':
 
 	# IF WITH PICKLE
 	#df = pd.read_pickle(weightclass + '_streamlit.pkl')
@@ -107,8 +107,58 @@ if weightclass!= '*** Watch demo video ***':
 #*************** MAIN PAGE ELEMENTS **************
 
 #*************** MAIN PAGE ELEMENTS **************
-if weightclass== '*** Watch demo video ***':
-	st.video('https://www.youtube.com/watch?v=GwbuM0I9tzE')
+if weightclass== '*** Upcoming fights ***':
+
+	st.title('Upcoming fights')
+	# IF WITH PICKLE
+	#df = pd.read_pickle(weightclass + '_streamlit.pkl')
+
+	# IF WITH PICKLE5			
+	#read the pickle file
+	picklefile = open('20220723_predictions.pkl', 'rb')
+	#unpickle the dataframe
+	df_pred = pickle.load(picklefile).round(decimals=2)
+	#close file
+	
+	picklefile.close()	
+	st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)	
+	genre = st.radio(label="Odds settings", options=('Fractional odds', 'Decimal odds', 'American odds'))
+
+	if genre == 'Fractional odds':
+		suffix = 'frac'
+	elif genre == 'Decimal odds':
+		suffix = 'dec'
+	else:
+		suffix = 'american'
+
+	# Check why results are switched
+	odds_fighter2 = 'Fighter1_'+suffix
+	odds_fighter1 = 'Fighter2_'+suffix
+
+	st.empty()
+	st.info(df_pred.iloc[0,0] + " on " +  df_pred.iloc[0,1] + " in " +  df_pred.iloc[0,2])
+
+	for index, row in df_pred.iterrows(): 
+
+		transaction = '7c4c5dd340d6706ccf791c55c03e2bda5e0bdfea49586489edbdbb2a2cffa5ad'
+		bsv_link = 'https://whatsonchain.com/tx/' + transaction
+		
+		col1, col2, col3 = st.columns(3)
+		col1.markdown("<p style='text-align: right;'>"+row['Fighter1']+"</p>", unsafe_allow_html=True)
+		col2.markdown("<p style='text-align: left;'>"+row['Fighter2']+"</p>", unsafe_allow_html=True)
+
+		if row[odds_fighter1] > row[odds_fighter2]:
+			col1.markdown("<p style='text-align: right; color:green;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
+			col2.markdown("<p style='text-align: left; color:red;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+		else:
+			col1.markdown("<p style='text-align: right; color:red;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
+			col2.markdown("<p style='text-align: left; color:green;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+
+		col3.markdown("<a style='text-align: left; font-style:italic;'>"+row['Weightclass']+"</p>", unsafe_allow_html=True)	
+		col3.markdown("<a href='"+ bsv_link +"' style='text-align: left; '>BSV entry </a>", unsafe_allow_html=True)	
+
+
+
 else:
 	
 	if fighter == "*** Summary of data set ***":
