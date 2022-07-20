@@ -45,60 +45,103 @@ def plot_clusters(round):
 	plt.polar(angles,values_opp, marker='s' , color='dimgrey', label=df_opp_tmp['FighterName'].values[0])
 	plt.fill(angles, values_opp, alpha=0.3, color='silver')
 	plt.xticks(angles[:-1], categories)
-	plt.title("ROUND " + str(round), loc='left', fontweight="bold")
+	plt.title("ROUND " + str(round), loc='left', fontweight="bold", color="white")
 	if round==2:
 		plt.legend(bbox_to_anchor =(0.8, -0.15), ncol=1)
 
 	ax.set_rlabel_position(0)
 
-
+	ax.xaxis.label.set_color('white')
+	ax.tick_params(axis='x', colors='white')
+	ax.yaxis.label.set_color('white')
+	ax.tick_params(axis='y', colors='white')
 
 	plt.yticks([0,1,2], color='grey', size=10)
+	fig.patch.set_alpha(0)
+
 
 	return fig
 
 # ***********************************************
 
 
+# ********** PASSWORD CHECK *******************
+pass_status = False
+correct_pass = "c0mb4t!q2022"
+if pass_status == False:
+	text_input_container1 = st.empty()
+	text_input_container2 = st.empty()
+	text_input_container3 = st.empty()
+
+
+	text_input_container1.image("redciq-copy.png", width=100)
+	text_input_container2.markdown("If you want to  receive the access code, please fill out <a href='https://combatiq.io/register' style='text-align: left; '>this form</a>", unsafe_allow_html=True)	
+	password = text_input_container3.text_input("Access code", type="password")
+
+	if password == correct_pass:
+		pass_status = True
+		text_input_container1.empty()
+		text_input_container2.empty()
+		text_input_container3.empty()
+	elif password =='':
+		text_input_container4 = st.empty()
+	else:
+		st.error('The password entered is wrong.')
+
+
 # ********** SIDEBAR ELEMENTS *******************
-
-st.sidebar.image("redciq-copy.png", width=100)
-st.sidebar.markdown("###### By choosing a weightclass below, you can experiment with the interactive Combat IQ Fight Analyzer tool."
-					" Currently, the analysis is limited to the five major weightclasses and fights with three rounds.")
-#st.title("Combat IQ Fight Analyzer")
+if pass_status == True:
+	st.sidebar.image("redciq-copy.png", width=100)
 
 
-list_weightclasses = ['*** Upcoming fights ***','Featherweight','Lightweight','Welterweight','Middleweight','Heavyweight']
+	st.sidebar.markdown("###### By choosing one of the options below, you can explore the Combat IQ analysis tools."
+						" Currently, past fight analysis is limited to the five major weightclasses and fights with three rounds.")
 
-weightclass = st.sidebar.selectbox("Select a weightclass:", list_weightclasses)
-
-
-if weightclass!= '*** Upcoming fights ***':
-
-	# IF WITH PICKLE
-	#df = pd.read_pickle(weightclass + '_streamlit.pkl')
-
-	# IF WITH PICKLE5			
-	#read the pickle file
-	picklefile = open(weightclass+'_streamlit.pkl', 'rb')
-	#unpickle the dataframe
-	df = pickle.load(picklefile)
-	#close file
-	picklefile.close()		
+	choice_subpage = st.sidebar.radio(label="", options=('Next fight predictions', 'Computer vision demo', 'Past fight analysis'))
 
 
-	list_fighters = np.sort(df['FighterName'].unique())
-	list_fighters = np.hstack(['*** Summary of data set ***',list_fighters])
+	if choice_subpage == 'Next fight predictions':
+		subpage = 'pred'
+	elif choice_subpage == 'Computer vision demo':
+		subpage = 'cvdemo'
+	else:
+		subpage = 'styles'
 
-	fighter = st.sidebar.selectbox("Select a fighter:", list_fighters)
 
-	if fighter!= '*** Summary of data set ***':
+	if subpage == 'styles':
 
-		df_fighter = df[df['FighterName']==fighter]
-		list_fights = np.sort(df_fighter['Date_formatted'].unique())
-		list_fights = np.hstack(['*** Fighter\'s history ***',list_fights])
-		sel_fight = st.sidebar.selectbox("Select a fight:", list_fights)
-	
+
+		list_weightclasses = ['','Featherweight','Lightweight','Welterweight','Middleweight','Heavyweight']
+
+		weightclass = st.sidebar.selectbox("Select a weightclass:", list_weightclasses)
+
+
+		if weightclass!= '':
+
+			# IF WITH PICKLE
+			#df = pd.read_pickle(weightclass + '_streamlit.pkl')
+
+			# IF WITH PICKLE5			
+			#read the pickle file
+			picklefile = open(weightclass+'_streamlit.pkl', 'rb')
+			#unpickle the dataframe
+			df = pickle.load(picklefile)
+			#close file
+			picklefile.close()		
+
+
+			list_fighters = np.sort(df['FighterName'].unique())
+			list_fighters = np.hstack(['*** Summary of data set ***',list_fighters])
+
+			fighter = st.sidebar.selectbox("Select a fighter:", list_fighters)
+
+			if fighter!= '*** Summary of data set ***':
+
+				df_fighter = df[df['FighterName']==fighter]
+				list_fights = np.sort(df_fighter['Date_formatted'].unique())
+				list_fights = np.hstack(['*** Fighter\'s history ***',list_fights])
+				sel_fight = st.sidebar.selectbox("Select a fight:", list_fights)
+		
 
 
 #*************************************************
@@ -107,171 +150,192 @@ if weightclass!= '*** Upcoming fights ***':
 #*************** MAIN PAGE ELEMENTS **************
 
 #*************** MAIN PAGE ELEMENTS **************
-if weightclass== '*** Upcoming fights ***':
 
-	st.title('Upcoming fights')
-	# IF WITH PICKLE
-	#df = pd.read_pickle(weightclass + '_streamlit.pkl')
+if pass_status == True:
+	if subpage== 'pred':
+		st.title('Upcoming fights')
+		# IF WITH PICKLE
+		#df = pd.read_pickle(weightclass + '_streamlit.pkl')
 
-	# IF WITH PICKLE5			
-	#read the pickle file
-	picklefile = open('20220723_predictions.pkl', 'rb')
-	#unpickle the dataframe
-	df_pred = pickle.load(picklefile).round(decimals=2)
-	#close file
-	
-	picklefile.close()	
-	st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)	
-	genre = st.radio(label="Odds settings", options=('Fractional odds', 'Decimal odds', 'American odds'))
-
-	if genre == 'Fractional odds':
-		suffix = 'frac'
-	elif genre == 'Decimal odds':
-		suffix = 'dec'
-	else:
-		suffix = 'american'
-
-	# Check why results are switched
-	odds_fighter2 = 'Fighter1_'+suffix
-	odds_fighter1 = 'Fighter2_'+suffix
-
-	st.empty()
-	st.info(df_pred.iloc[0,0] + " on " +  df_pred.iloc[0,1] + " in " +  df_pred.iloc[0,2])
-
-	for index, row in df_pred.iterrows(): 
-
-		transaction = '7c4c5dd340d6706ccf791c55c03e2bda5e0bdfea49586489edbdbb2a2cffa5ad'
-		bsv_link = 'https://whatsonchain.com/tx/' + transaction
+		# IF WITH PICKLE5			
+		#read the pickle file
+		picklefile = open('20220723_predictions_bsv.pkl', 'rb')
+		#unpickle the dataframe
+		df_pred = pickle.load(picklefile).round(decimals=2)
+		#close file
 		
-		col1, col2, col3 = st.columns(3)
-		col1.markdown("<p style='text-align: right;'>"+row['Fighter1']+"</p>", unsafe_allow_html=True)
-		col2.markdown("<p style='text-align: left;'>"+row['Fighter2']+"</p>", unsafe_allow_html=True)
+		picklefile.close()	
+		st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)	
 
-		if row[odds_fighter1] > row[odds_fighter2]:
-			col1.markdown("<p style='text-align: right; color:green;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
-			col2.markdown("<p style='text-align: left; color:red;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
-		else:
-			col1.markdown("<p style='text-align: right; color:red;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
-			col2.markdown("<p style='text-align: left; color:green;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+		# FPR THE MOMENT ODDS ARE NOT USED
 
-		col3.markdown("<a style='text-align: left; font-style:italic;'>"+row['Weightclass']+"</p>", unsafe_allow_html=True)	
-		col3.markdown("<a href='"+ bsv_link +"' style='text-align: left; '>BSV entry </a>", unsafe_allow_html=True)	
+		# genre = st.radio(label="Odds settings", options=('American odds', 'Decimal odds', 'Fractional odds'))
 
 
+		# if genre == 'Fractional odds':
+		# 	suffix = 'frac'
+		# elif genre == 'Decimal odds':
+		# 	suffix = 'dec'
+		# else:
+		# 	suffix = 'american'
 
-else:
-	
-	if fighter == "*** Summary of data set ***":
+		# odds_fighter1 = 'Fighter1_'+suffix
+		# odds_fighter2 = 'Fighter2_'+suffix
 
-		st.title(weightclass + " data set")
-		#with st.expander("Show complete data table"):
-		#	st.dataframe(df)
-		col1a, col1b = st.columns(2)
-		col1a.metric("Total fights", df['FightUrl'].nunique())
-		col1b.metric("Total fighters", df['FighterName'].nunique())
-		col1a.metric("Most fights", df['FighterName'].value_counts().index[0])
-		col1b.metric("Most wins", df['Winner'].value_counts().index[0])
+		odds_fighter1 = 'Fighter1_proba'
+		odds_fighter2 = 'Fighter2_proba'
 
-	else:
+		st.empty()
+		st.info(df_pred.iloc[0,0] + " on " +  df_pred.iloc[0,1] + " in " +  df_pred.iloc[0,2])
 
-		if sel_fight == '*** Fighter\'s history ***':
-		
-			st.markdown("## Fight history of " + fighter)	
+		for index, row in df_pred.iterrows(): 
 
-			n_fights = df_fighter['FightUrl'].nunique()
-			n_wins = int(df_fighter['Won'].sum()/3)
-
-			col1a, col1b, col1c = st.columns(3)
-			col1a.metric("Total Fights", n_fights)
-			col1b.metric("Wins", n_wins)
-			col1c.metric("Losses", n_fights-n_wins)
-
-
-			df_fighter_chronological = df_fighter[df_fighter['Rd']==1].sort_values('Date_formatted')
+			transaction = row['TxID']
+			bsv_link = 'https://whatsonchain.com/tx/' + transaction
 			
-			#with st.expander("Show complete data table"):
-			#	st.dataframe(df_fighter_chronological)
+			col1, col2, col3 = st.columns(3)
+			col1.markdown("<p style='text-align: center;'>"+row['Fighter1']+"</p>", unsafe_allow_html=True)
+			col2.markdown("<p style='text-align: center;'>"+row['Fighter2']+"</p>", unsafe_allow_html=True)
 
-			fig, ax = plt.subplots(figsize=(10, 2))
-			ax.grid(color='black', ls = '-.', lw = 0.25)
-			ax.set_yticks([0,1])
-			ax.set_yticklabels(['Lost','Won'])
-			ax.set_ylim([-0.25,1.25])
-
-			ax.plot(df_fighter_chronological['Date_formatted'],df_fighter_chronological['Won'], marker='s', color='crimson')
-
-			st.pyplot(fig)
-
-		else:
-
-
-			#st.markdown("### Analyze a specific fight")	
-
-			df_fighter_fight = df_fighter[df_fighter['Date_formatted']==sel_fight]
-			fighturl = df_fighter_fight['FightUrl'].unique()
-			#st.write(fighturl[0])
-			df_opp = df[(df['FightUrl']==fighturl[0])&(df['FighterName']!=fighter)]
-
-			if df_fighter_fight['Winner'].unique()[0] == fighter:
-				st.success("__Result__: " + fighter + " wins against " + df_opp['FighterName'].unique()[0] 
-					+ " on " + sel_fight.isoformat() + " (" + df_fighter_fight['Event'].unique()[0] + ")")
+			if row[odds_fighter1] > row[odds_fighter2]:
+				col1.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
+				col2.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
 			else:
-				st.error("__Result__: " + fighter + " loses against " + df_opp['FighterName'].unique()[0] 
-					+ " on " + sel_fight.isoformat() + " (" + df_fighter_fight['Event'].unique()[0] + ")")
+				col1.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
+				col2.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+
+			col3.markdown("<p style='text-align: center; font-style:italic;'>"+row['Weightclass']+"</p>", unsafe_allow_html=True)	
+			col3.markdown("<p style='text-align: center;'> <a align='center' href='"+ bsv_link +"'>BSV record </a></p>", unsafe_allow_html=True)	
+			col3.markdown("<p style='text-align: center;'> <br /> </p>", unsafe_allow_html=True)	
+
+	elif subpage == 'cvdemo':
+		st.video('https://www.youtube.com/watch?v=GwbuM0I9tzE')
+
+	else:
+		if weightclass!= '':
+			if fighter == "*** Summary of data set ***":
+
+				st.title(weightclass + " data set")
+				#with st.expander("Show complete data table"):
+				#	st.dataframe(df)
+				col1a, col1b = st.columns(2)
+				col1a.metric("Total fights", df['FightUrl'].nunique())
+				col1b.metric("Total fighters", df['FighterName'].nunique())
+				col1a.metric("Most fights", df['FighterName'].value_counts().index[0])
+				col1b.metric("Most wins", df['Winner'].value_counts().index[0])
+
+			else:
+
+				if sel_fight == '*** Fighter\'s history ***':
+				
+					st.markdown("## Fight history of " + fighter)	
+
+					n_fights = df_fighter['FightUrl'].nunique()
+					n_wins = int(df_fighter['Won'].sum()/3)
+
+					col1a, col1b, col1c = st.columns(3)
+					col1a.metric("Total Fights", n_fights)
+					col1b.metric("Wins", n_wins)
+					col1c.metric("Losses", n_fights-n_wins)
 
 
-			st.markdown("#### Style analysis by round")
+					df_fighter_chronological = df_fighter[df_fighter['Rd']==1].sort_values('Date_formatted')
+					
+					#with st.expander("Show complete data table"):
+					#	st.dataframe(df_fighter_chronological)
 
-			with st.expander("More about the style analysis"):
-				st.info("These plots depict the styles of both opponents accross the three rounds of a fight." +
-					" Styles are classfified using to the following five dimensions: Ground fight, clinch fight, distance fight, aggressiveness and grappling." +
-					" Both fighters were rated in each round with respect to these five dimensions." +
-					" The ratings were obtained by running machine learning methods (specifically clustering algorithms) on the entire data set including all fighters and metrics." +
-					" The metrics comprised both standard features (such as number of strikes etc.) as well as features engineered using domain expertise and Combat IQ's propietary formulas." +
-					" The output of the clustering method is the classification of each fighter to the different levels of the five dimensions (from 1 = poor to 3 = strong).")
+					fig, ax = plt.subplots(figsize=(10, 2))
+					ax.grid(color='black', ls = '-.', lw = 0.25)
+					ax.set_yticks([0,1])
+					ax.set_yticklabels(['Lost','Won'])
+					ax.set_ylim([-0.25,1.25])
+					fig.patch.set_alpha(0)
+
+					ax.plot(df_fighter_chronological['Date_formatted'],df_fighter_chronological['Won'], marker='s', color='crimson')
+					ax.xaxis.label.set_color('white')
+					ax.tick_params(axis='x', colors='white')
+					ax.yaxis.label.set_color('white')
+					ax.tick_params(axis='y', colors='white')
+					st.pyplot(fig)
+
+				else:
 
 
-			figRd1 = plot_clusters(1)
-			figRd2 = plot_clusters(2)
-			figRd3 = plot_clusters(3)
+					#st.markdown("### Analyze a specific fight")	
 
-			col3a, col3b, col3c = st.columns(3)
-			col3a.pyplot(figRd1)
-			col3b.pyplot(figRd2)
-			col3c.pyplot(figRd3)
+					df_fighter_fight = df_fighter[df_fighter['Date_formatted']==sel_fight]
+					fighturl = df_fighter_fight['FightUrl'].unique()
+					#st.write(fighturl[0])
+					df_opp = df[(df['FightUrl']==fighturl[0])&(df['FighterName']!=fighter)]
+
+					if df_fighter_fight['Winner'].unique()[0] == fighter:
+						st.success("__Result__: " + fighter + " wins against " + df_opp['FighterName'].unique()[0] 
+							+ " on " + sel_fight.isoformat() + " (" + df_fighter_fight['Event'].unique()[0] + ")")
+					else:
+						st.error("__Result__: " + fighter + " loses against " + df_opp['FighterName'].unique()[0] 
+							+ " on " + sel_fight.isoformat() + " (" + df_fighter_fight['Event'].unique()[0] + ")")
 
 
-			st.markdown("#### Fight metrics by round")
-			
-			#st.dataframe(df_opp)
-			#st.dataframe(df_fighter_fight)
-			col2a, col2b = st.columns(2)
+					st.markdown("#### Style analysis by round")
 
-			with col2a:
-				sel_metric = st.selectbox("Select a metric:", ['Strikes', 'SigStrikes',
-				       'Takedowns', 'Knockdowns', 'Reversals', 'Ctrl', 'StrikesAttmptd',
-				       'SigStrikesAttmptd', 'TakedownsAttmptd', 'SIgStrikes_Head',
-				       'SIgStrikes_Body', 'SIgStrikes_Legs', 'SIgStrikes_HeadAttmptd',
-				       'SIgStrikes_BodyAttmptd', 'SIgStrikes_LegsAttmptd', 'DTN_SigStrikes',
-				       'CLNCH_SigStrikes', 'GND_SigStrikes', 'DTN_SigStrikesAttmptd',
-				       'CLNCH_SigStrikesAttmptd', 'GND_SigStrikesAttmptd'])
+					with st.expander("More about the style analysis"):
+						st.info("These plots depict the styles of both opponents accross the three rounds of a fight." +
+							" Styles are classfified using to the following five dimensions: Ground fight, clinch fight, distance fight, aggressiveness and grappling." +
+							" Both fighters were rated in each round with respect to these five dimensions." +
+							" The ratings were obtained by running machine learning methods (specifically clustering algorithms) on the entire data set including all fighters and metrics." +
+							" The metrics comprised both standard features (such as number of strikes etc.) as well as features engineered using domain expertise and Combat IQ's propietary formulas." +
+							" The output of the clustering method is the classification of each fighter to the different levels of the five dimensions (from 1 = poor to 3 = strong).")
 
-				with st.expander("More about the fight metrics"):
-					st.info("This tool can be used to visualize and compare a specific fight metric for both opponents." +
-							" As of now, all standard metrics (such as number of strikes etc.) are available." +
-							" In order to protect Combat IQ's intellectual property, the engineered features are currently not displayed.")
 
-			metrics_fighter = df_fighter_fight[sel_metric]
-			metrics_opp = df_opp[sel_metric]
-			fig, ax = plt.subplots()
-			ax.plot([1,2,3], metrics_fighter, marker='s' ,color='crimson')
-			ax.plot([1,2,3], metrics_opp, marker='s', color='dimgrey')
-			ax.grid(color='black', ls = '-.', lw = 0.25)
-			ax.set_xticks([1,2,3])
+					figRd1 = plot_clusters(1)
+					figRd2 = plot_clusters(2)
+					figRd3 = plot_clusters(3)
 
-			plt.xlabel("Round")
-			plt.ylabel(sel_metric)
-			plt.legend([fighter, df_opp['FighterName'].unique()[0]],bbox_to_anchor =(1.0, 1.2))
+					col3a, col3b, col3c = st.columns(3)
+					col3a.pyplot(figRd1)
+					col3b.pyplot(figRd2)
+					col3c.pyplot(figRd3)
 
-			
-			col2b.pyplot(fig)
+
+					st.markdown("#### Fight metrics by round")
+					
+					#st.dataframe(df_opp)
+					#st.dataframe(df_fighter_fight)
+					col2a, col2b = st.columns(2)
+
+					with col2a:
+						sel_metric = st.selectbox("Select a metric:", ['Strikes', 'SigStrikes',
+							'Takedowns', 'Knockdowns', 'Reversals', 'Ctrl', 'StrikesAttmptd',
+							'SigStrikesAttmptd', 'TakedownsAttmptd', 'SIgStrikes_Head',
+							'SIgStrikes_Body', 'SIgStrikes_Legs', 'SIgStrikes_HeadAttmptd',
+							'SIgStrikes_BodyAttmptd', 'SIgStrikes_LegsAttmptd', 'DTN_SigStrikes',
+							'CLNCH_SigStrikes', 'GND_SigStrikes', 'DTN_SigStrikesAttmptd',
+							'CLNCH_SigStrikesAttmptd', 'GND_SigStrikesAttmptd'])
+
+						with st.expander("More about the fight metrics"):
+							st.info("This tool can be used to visualize and compare a specific fight metric for both opponents." +
+									" As of now, all standard metrics (such as number of strikes etc.) are available." +
+									" In order to protect Combat IQ's intellectual property, the engineered features are currently not displayed.")
+
+					metrics_fighter = df_fighter_fight[sel_metric]
+					metrics_opp = df_opp[sel_metric]
+					fig, ax = plt.subplots()
+					ax.plot([1,2,3], metrics_fighter, marker='s' ,color='crimson')
+					ax.plot([1,2,3], metrics_opp, marker='s', color='dimgrey')
+					ax.grid(color='black', ls = '-.', lw = 0.25)
+					ax.set_xticks([1,2,3])
+					ax.xaxis.label.set_color('white')
+					ax.tick_params(axis='x', colors='white')
+					ax.yaxis.label.set_color('white')
+					ax.tick_params(axis='y', colors='white')
+
+					plt.xlabel("Round")
+					plt.ylabel(sel_metric)
+					plt.legend([fighter, df_opp['FighterName'].unique()[0]],bbox_to_anchor =(1.0, 1.2))
+					fig.patch.set_alpha(0)
+					
+					
+					col2b.pyplot(fig)
+		else:
+			st.markdown("#### Please select a weightclass from the dropdown menu on the left")
+
