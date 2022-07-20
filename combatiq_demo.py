@@ -169,21 +169,21 @@ if pass_status == True:
 
 		# FPR THE MOMENT ODDS ARE NOT USED
 
-		# genre = st.radio(label="Odds settings", options=('American odds', 'Decimal odds', 'Fractional odds'))
+		genre = st.radio(label="Odds settings", options=('American odds', 'Decimal odds', 'Fractional odds'))
 
 
-		# if genre == 'Fractional odds':
-		# 	suffix = 'frac'
-		# elif genre == 'Decimal odds':
-		# 	suffix = 'dec'
-		# else:
-		# 	suffix = 'american'
+		if genre == 'Fractional odds':
+			suffix = 'frac'
+		elif genre == 'Decimal odds':
+			suffix = 'dec'
+		else:
+			suffix = 'american'
 
-		# odds_fighter1 = 'Fighter1_'+suffix
-		# odds_fighter2 = 'Fighter2_'+suffix
+		odds_fighter1 = 'Fighter1_'+suffix
+		odds_fighter2 = 'Fighter2_'+suffix
 
-		odds_fighter1 = 'Fighter1_proba'
-		odds_fighter2 = 'Fighter2_proba'
+		# odds_fighter1 = 'Fighter1_proba'
+		# odds_fighter2 = 'Fighter2_proba'
 
 		st.empty()
 		st.info(df_pred.iloc[0,0] + " on " +  df_pred.iloc[0,1] + " in " +  df_pred.iloc[0,2])
