@@ -186,7 +186,7 @@ if pass_status == True:
 		odds_fighter2 = 'Fighter2_proba'
 
 		st.empty()
-		st.info("Confidence values of winning predictions for " + df_pred.iloc[0,3] + " on " +  df_pred.iloc[0,4] + ". Fighters with limited data records are highlighted wiht an asterisk (*).")
+		st.info("Confidence values of winning predictions for " + df_pred.iloc[0,3] + " on " +  df_pred.iloc[0,4] + ". Fighters with limited data records are highlighted with an asterisk (*).")
 
 		for index, row in df_pred.iterrows(): 
 
