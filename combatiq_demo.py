@@ -97,10 +97,10 @@ if pass_status == True:
 	st.sidebar.markdown("###### By choosing one of the options below, you can explore the Combat IQ analysis tools."
 						" Currently, past fight analysis is limited to the five major weightclasses and fights with three rounds.")
 
-	choice_subpage = st.sidebar.radio(label="", options=('Next fight predictions', 'Computer vision demo', 'Past fight analysis'))
+	choice_subpage = st.sidebar.radio(label="", options=('Fight predictions', 'Computer vision demo', 'Past fight analysis'))
 
 
-	if choice_subpage == 'Next fight predictions':
+	if choice_subpage == 'Fight predictions':
 		subpage = 'pred'
 	elif choice_subpage == 'Computer vision demo':
 		subpage = 'cvdemo'
@@ -153,13 +153,13 @@ if pass_status == True:
 
 if pass_status == True:
 	if subpage== 'pred':
-		st.title('Upcoming fights')
+		st.title('Fight predictions')
 		# IF WITH PICKLE
 		#df = pd.read_pickle(weightclass + '_streamlit.pkl')
 
 		# IF WITH PICKLE5			
 		#read the pickle file
-		picklefile = open('20220723_predictions_bsv.pkl', 'rb')
+		picklefile = open('20220730_predictions_bsv.pkl', 'rb')
 		#unpickle the dataframe
 		df_pred = pickle.load(picklefile).round(decimals=2)
 		#close file
@@ -169,42 +169,53 @@ if pass_status == True:
 
 		# FPR THE MOMENT ODDS ARE NOT USED
 
-		genre = st.radio(label="Odds settings", options=('American odds', 'Decimal odds', 'Fractional odds'))
+		# genre = st.radio(label="Odds settings", options=('American odds', 'Decimal odds', 'Fractional odds'))
 
 
-		if genre == 'Fractional odds':
-			suffix = 'frac'
-		elif genre == 'Decimal odds':
-			suffix = 'dec'
-		else:
-			suffix = 'american'
+		# if genre == 'Fractional odds':
+		# 	suffix = 'frac'
+		# elif genre == 'Decimal odds':
+		# 	suffix = 'dec'
+		# else:
+		# 	suffix = 'american'
 
-		odds_fighter1 = 'Fighter1_'+suffix
-		odds_fighter2 = 'Fighter2_'+suffix
+		# odds_fighter1 = 'Fighter1_'+suffix
+		# odds_fighter2 = 'Fighter2_'+suffix
 
-		# odds_fighter1 = 'Fighter1_proba'
-		# odds_fighter2 = 'Fighter2_proba'
+		odds_fighter1 = 'Fighter1_proba'
+		odds_fighter2 = 'Fighter2_proba'
 
 		st.empty()
-		st.info(df_pred.iloc[0,0] + " on " +  df_pred.iloc[0,1] + " in " +  df_pred.iloc[0,2])
+		st.info("Confidence values of winning predictions for " + df_pred.iloc[0,3] + " on " +  df_pred.iloc[0,4] + ". Fighters with limited data records are highlighted wiht an asterisk (*).")
 
 		for index, row in df_pred.iterrows(): 
 
 			transaction = row['TxID']
 			bsv_link = 'https://whatsonchain.com/tx/' + transaction
+
+			if row['Fighter1_nrecords'] < 3:
+				display_name1 = row['RC'] + ' (*)'
+			else:
+				display_name1 = row['RC']
+
+			if row['Fighter2_nrecords'] < 3:
+				display_name2 = row['BC'] + ' (*)'
+			else:
+				display_name2 = row['BC']	
+
 			
 			col1, col2, col3 = st.columns(3)
-			col1.markdown("<p style='text-align: center;'>"+row['Fighter1']+"</p>", unsafe_allow_html=True)
-			col2.markdown("<p style='text-align: center;'>"+row['Fighter2']+"</p>", unsafe_allow_html=True)
+			col1.markdown("<p style='text-align: center;'>"+display_name1+"</p>", unsafe_allow_html=True)
+			col2.markdown("<p style='text-align: center;'>"+display_name2+"</p>", unsafe_allow_html=True)
 
 			if row[odds_fighter1] > row[odds_fighter2]:
-				col1.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
-				col2.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
-			else:
 				col1.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
 				col2.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+			else:
+				col1.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
+				col2.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
 
-			col3.markdown("<p style='text-align: center; font-style:italic;'>"+row['Weightclass']+"</p>", unsafe_allow_html=True)	
+			col3.markdown("<p style='text-align: center; font-style:italic;'>"+row['Division']+"</p>", unsafe_allow_html=True)	
 			col3.markdown("<p style='text-align: center;'> <a align='center' href='"+ bsv_link +"'>BSV record </a></p>", unsafe_allow_html=True)	
 			col3.markdown("<p style='text-align: center;'> <br /> </p>", unsafe_allow_html=True)	
 
