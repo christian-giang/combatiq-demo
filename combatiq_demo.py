@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from math import pi
 from datetime import datetime
+import time
 
 try:
     import pickle5 as pickle
@@ -75,7 +76,7 @@ if pass_status == False:
 
 
 	text_input_container1.image("redciq-copy.png", width=100)
-	text_input_container2.markdown("If you want to  receive the access code, please fill out <a href='https://combatiq.io/register' style='text-align: left; '>this form</a>", unsafe_allow_html=True)	
+	text_input_container2.markdown("To receive the access code, please fill out <a href='https://combatiq.io/register' style='text-align: left; '>this form</a>", unsafe_allow_html=True)	
 	password = text_input_container3.text_input("Access code", type="password")
 
 	if password == correct_pass:
@@ -86,7 +87,7 @@ if pass_status == False:
 	elif password =='':
 		text_input_container4 = st.empty()
 	else:
-		st.error('The password entered is wrong.')
+		st.error('The password you entered is wrong.')
 
 
 # ********** SIDEBAR ELEMENTS *******************
@@ -154,70 +155,109 @@ if pass_status == True:
 if pass_status == True:
 	if subpage== 'pred':
 		st.title('Fight predictions')
-		# IF WITH PICKLE
-		#df = pd.read_pickle(weightclass + '_streamlit.pkl')
 
-		# IF WITH PICKLE5			
-		#read the pickle file
-		picklefile = open('20220730_predictions_bsv.pkl', 'rb')
-		#unpickle the dataframe
-		df_pred = pickle.load(picklefile).round(decimals=2)
-		#close file
-		
-		picklefile.close()	
-		st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)	
+		st.metric(label="Prediction accuracy to date", value="75 %")
+		st.progress(75)
 
-		# FPR THE MOMENT ODDS ARE NOT USED
+		st.info("The prediction accuracy is only computed for fights with sufficient data available. Fighters with limited data records are marked with an asterisk (*).")
+		#st.info("Confidence values of winning predictions for " + df_pred.iloc[0,3] + " on " +  df_pred.iloc[0,4] + ". Fighters with limited data records are highlighted with an asterisk (*).")
 
-		# genre = st.radio(label="Odds settings", options=('American odds', 'Decimal odds', 'Fractional odds'))
+		st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
+
+		pred_choice = st.selectbox(label="Please choose the predictions to be displayed:", options=('','Upcoming fights', 'Completed fights'))	
 
 
-		# if genre == 'Fractional odds':
-		# 	suffix = 'frac'
-		# elif genre == 'Decimal odds':
-		# 	suffix = 'dec'
-		# else:
-		# 	suffix = 'american'
+		if pred_choice == 'Upcoming fights':
 
-		# odds_fighter1 = 'Fighter1_'+suffix
-		# odds_fighter2 = 'Fighter2_'+suffix
 
-		odds_fighter1 = 'Fighter1_proba'
-		odds_fighter2 = 'Fighter2_proba'
+			picklefile = open('20220730_predictions_bsv.pkl', 'rb')
+			df_pred = pickle.load(picklefile).round(decimals=2)
+			picklefile.close()	
 
-		st.empty()
-		st.info("Confidence values of winning predictions for " + df_pred.iloc[0,3] + " on " +  df_pred.iloc[0,4] + ". Fighters with limited data records are highlighted with an asterisk (*).")
+			odds_fighter1 = 'RC_proba'
+			odds_fighter2 = 'BC_proba'
 
-		for index, row in df_pred.iterrows(): 
+			st.empty()
 
-			transaction = row['TxID']
-			bsv_link = 'https://whatsonchain.com/tx/' + transaction
+			st.markdown("<h4 style='text-align: center; color:white;'> Predictions for "+ df_pred.iloc[0,3] + " ("+ df_pred.iloc[0,4]  +") </p>", unsafe_allow_html=True)
 
-			if row['Fighter1_nrecords'] < 3:
-				display_name1 = row['RC'] + ' (*)'
-			else:
-				display_name1 = row['RC']
 
-			if row['Fighter2_nrecords'] < 3:
-				display_name2 = row['BC'] + ' (*)'
-			else:
-				display_name2 = row['BC']	
+			for index, row in df_pred.iterrows(): 
 
-			
-			col1, col2, col3 = st.columns(3)
-			col1.markdown("<p style='text-align: center;'>"+display_name1+"</p>", unsafe_allow_html=True)
-			col2.markdown("<p style='text-align: center;'>"+display_name2+"</p>", unsafe_allow_html=True)
+				transaction = row['TxID']
+				bsv_link = 'https://whatsonchain.com/tx/' + transaction
 
-			if row[odds_fighter1] > row[odds_fighter2]:
-				col1.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
-				col2.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
-			else:
-				col1.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
-				col2.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+				if row['RC_nrecords'] < 3:
+					display_name1 = row['RC'] + ' (*)'
+				else:
+					display_name1 = row['RC']
 
-			col3.markdown("<p style='text-align: center; font-style:italic;'>"+row['Division']+"</p>", unsafe_allow_html=True)	
-			col3.markdown("<p style='text-align: center;'> <a align='center' href='"+ bsv_link +"'>BSV record </a></p>", unsafe_allow_html=True)	
-			col3.markdown("<p style='text-align: center;'> <br /> </p>", unsafe_allow_html=True)	
+				if row['BC_nrecords'] < 3:
+					display_name2 = row['BC'] + ' (*)'
+				else:
+					display_name2 = row['BC']	
+
+				
+				col1, col2, col3 = st.columns(3)
+				col1.markdown("<p style='text-align: center;'>"+display_name1+"</p>", unsafe_allow_html=True)
+				col2.markdown("<p style='text-align: center;'>"+display_name2+"</p>", unsafe_allow_html=True)
+
+				if row[odds_fighter1] > row[odds_fighter2]:
+					col1.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
+					col2.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+				else:
+					col1.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
+					col2.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+
+				col3.markdown("<p style='text-align: center; font-style:italic;'>"+row['Division']+"</p>", unsafe_allow_html=True)	
+				col3.markdown("<p style='text-align: center;'> <a align='center' href='"+ bsv_link +"'>BSV record </a></p>", unsafe_allow_html=True)	
+				col3.markdown("<p style='text-align: center;'> <br /> </p>", unsafe_allow_html=True)	
+
+		elif pred_choice == 'Completed fights':
+
+			picklefile = open('20220723_final_predictions_bsv_results.pkl', 'rb')
+			df_pred = pickle.load(picklefile).round(decimals=2)
+			picklefile.close()	
+
+			odds_fighter1 = 'RC_proba'
+			odds_fighter2 = 'BC_proba'
+
+			st.empty()
+
+			st.markdown("<h4 style='text-align: center; color:white;'> Predictions for "+ df_pred.iloc[0,3] + " ("+ df_pred.iloc[0,4]  +") </p>", unsafe_allow_html=True)
+
+
+			for index, row in df_pred.iterrows(): 
+
+				transaction = row['TxID']
+				bsv_link = 'https://whatsonchain.com/tx/' + transaction
+
+				if row['RC_nrecords'] < 3:
+					display_name1 = row['RC'] + ' (*)'
+				else:
+					display_name1 = row['RC']
+
+				if row['BC_nrecords'] < 3:
+					display_name2 = row['BC'] + ' (*)'
+				else:
+					display_name2 = row['BC']	
+
+				
+				col1, col2, col3 = st.columns(3)
+				col1.markdown("<p style='text-align: center;'>"+display_name1+"</p>", unsafe_allow_html=True)
+				col2.markdown("<p style='text-align: center;'>"+display_name2+"</p>", unsafe_allow_html=True)
+
+				if row[odds_fighter1] > row[odds_fighter2]:
+					col1.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
+					col2.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+				else:
+					col1.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
+					col2.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+
+				col3.markdown("<p style='text-align: center; font-style:italic;'>"+row['Division']+"</p>", unsafe_allow_html=True)	
+				col3.markdown("<p style='text-align: center;'> <a align='center' href='"+ bsv_link +"'>BSV record </a></p>", unsafe_allow_html=True)	
+				col3.markdown("<p style='text-align: center;'> <br /> </p>", unsafe_allow_html=True)
+
 
 	elif subpage == 'cvdemo':
 		st.video('https://www.youtube.com/watch?v=GwbuM0I9tzE')
