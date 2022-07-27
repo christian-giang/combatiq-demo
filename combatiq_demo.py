@@ -67,9 +67,12 @@ def plot_clusters(round):
 
 
 # ********** PASSWORD CHECK *******************
-pass_status = False
+if 'unlocked' not in st.session_state:
+    st.session_state['unlocked'] = False
+
 correct_pass = "c0mb4t!q2022"
-if pass_status == False:
+
+if st.session_state['unlocked'] == False:
 	text_input_container1 = st.empty()
 	text_input_container2 = st.empty()
 	text_input_container3 = st.empty()
@@ -80,7 +83,7 @@ if pass_status == False:
 	password = text_input_container3.text_input("Access code", type="password")
 
 	if password == correct_pass:
-		pass_status = True
+		st.session_state['unlocked'] = True
 		text_input_container1.empty()
 		text_input_container2.empty()
 		text_input_container3.empty()
@@ -91,7 +94,7 @@ if pass_status == False:
 
 
 # ********** SIDEBAR ELEMENTS *******************
-if pass_status == True:
+if st.session_state['unlocked']  == True:
 	st.sidebar.image("redciq-copy.png", width=100)
 
 
@@ -143,7 +146,7 @@ if pass_status == True:
 
 #*************** MAIN PAGE ELEMENTS **************
 
-if pass_status == True:
+if st.session_state['unlocked']  == True:
 	if subpage== 'pred':
 		st.title('Fight predictions')
 		st.markdown("""---""") 
