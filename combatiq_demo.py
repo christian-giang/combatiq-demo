@@ -96,9 +96,9 @@ if pass_status == True:
 
 
 	st.sidebar.markdown("###### By choosing one of the options below, you can explore the Combat IQ analysis tools."
-						" Currently, past fight analysis is limited to the five major weightclasses and fights with three rounds.")
+						" Currently, past fight analysis is limited to the five major divisions and fights with three rounds.")
 
-	choice_subpage = st.sidebar.radio(label="", options=('Fight predictions', 'Computer vision demo', 'Past fight analysis'))
+	choice_subpage = st.sidebar.radio(label="", options=('Fight predictions', 'Computer vision demo', 'Past fights analysis'))
 
 
 	if choice_subpage == 'Fight predictions':
@@ -112,36 +112,27 @@ if pass_status == True:
 	if subpage == 'styles':
 
 
-		list_weightclasses = ['','Featherweight','Lightweight','Welterweight','Middleweight','Heavyweight']
+		list_weightclasses = ['Featherweight','Lightweight','Welterweight','Middleweight','Heavyweight']
 
 		weightclass = st.sidebar.selectbox("Select a weightclass:", list_weightclasses)
 
 
-		if weightclass!= '':
+		# IF WITH PICKLE
+		#df = pd.read_pickle(weightclass + '_streamlit.pkl')
 
-			# IF WITH PICKLE
-			#df = pd.read_pickle(weightclass + '_streamlit.pkl')
-
-			# IF WITH PICKLE5			
-			#read the pickle file
-			picklefile = open(weightclass+'_streamlit.pkl', 'rb')
-			#unpickle the dataframe
-			df = pickle.load(picklefile)
-			#close file
-			picklefile.close()		
+		# IF WITH PICKLE5			
+		#read the pickle file
+		picklefile = open(weightclass+'_streamlit.pkl', 'rb')
+		#unpickle the dataframe
+		df = pickle.load(picklefile)
+		#close file
+		picklefile.close()		
 
 
-			list_fighters = np.sort(df['FighterName'].unique())
-			list_fighters = np.hstack(['*** Summary of data set ***',list_fighters])
+		list_fighters = np.sort(df['FighterName'].unique())
 
-			fighter = st.sidebar.selectbox("Select a fighter:", list_fighters)
+		fighter = st.sidebar.selectbox("Select a fighter:", list_fighters)
 
-			if fighter!= '*** Summary of data set ***':
-
-				df_fighter = df[df['FighterName']==fighter]
-				list_fights = np.sort(df_fighter['Date_formatted'].unique())
-				list_fights = np.hstack(['*** Fighter\'s history ***',list_fights])
-				sel_fight = st.sidebar.selectbox("Select a fight:", list_fights)
 		
 
 
@@ -155,27 +146,37 @@ if pass_status == True:
 if pass_status == True:
 	if subpage== 'pred':
 		st.title('Fight predictions')
+		st.markdown("""---""") 
 
 		st.metric(label="Prediction accuracy to date", value="75 %")
 		st.progress(75)
 
-		st.info("The prediction accuracy is only computed for fights with sufficient data available. Fighters with limited data records are marked with an asterisk (*).")
+		st.info("The prediction accuracy is only computed for fights with sufficient data available. Predictions based on limited data are marked as (*). Predicted winners are marked as (P). For past fights, the actual winners are marked as (W).")
 		#st.info("Confidence values of winning predictions for " + df_pred.iloc[0,3] + " on " +  df_pred.iloc[0,4] + ". Fighters with limited data records are highlighted with an asterisk (*).")
+
+		st.markdown("""---""") 
+
 
 		st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
 
-		pred_choice = st.selectbox(label="Please choose the predictions to be displayed:", options=('','Upcoming fights', 'Completed fights'))	
+		pred_choice = st.selectbox(label="Select the predictions to be displayed:", options=('','Upcoming fights', 'Past fights'))	
 
+		enough_data = st.checkbox('Show predictions based on sufficient data only')
+
+		st.markdown("""---""") 
 
 		if pred_choice == 'Upcoming fights':
 
 
-			picklefile = open('20220730_predictions_bsv.pkl', 'rb')
+			picklefile = open('next_predictions_bsv.pkl', 'rb')
 			df_pred = pickle.load(picklefile).round(decimals=2)
 			picklefile.close()	
 
 			odds_fighter1 = 'RC_proba'
 			odds_fighter2 = 'BC_proba'
+
+			if enough_data:
+				df_pred = df_pred.loc[(df_pred['RC_nrecords']>2) & (df_pred['BC_nrecords']>2)]
 
 			st.empty()
 
@@ -188,14 +189,23 @@ if pass_status == True:
 				bsv_link = 'https://whatsonchain.com/tx/' + transaction
 
 				if row['RC_nrecords'] < 3:
-					display_name1 = row['RC'] + ' (*)'
+					display_odds1 = str(row[odds_fighter1]) + ' (*)'
 				else:
-					display_name1 = row['RC']
+					display_odds1 = str(row[odds_fighter1])
 
 				if row['BC_nrecords'] < 3:
-					display_name2 = row['BC'] + ' (*)'
+					display_odds2 = str(row[odds_fighter2]) + ' (*)'
 				else:
-					display_name2 = row['BC']	
+					display_odds2 = str(row[odds_fighter2])	
+
+
+				display_name1 = row['RC'] 
+				display_name2 = row['BC'] 
+
+				if row['PredictedWinner'] == row['RC']:
+					display_name1 = display_name1 + ' (P)'
+				else:
+					display_name2 = display_name2 + ' (P)'	
 
 				
 				col1, col2, col3 = st.columns(3)
@@ -203,24 +213,27 @@ if pass_status == True:
 				col2.markdown("<p style='text-align: center;'>"+display_name2+"</p>", unsafe_allow_html=True)
 
 				if row[odds_fighter1] > row[odds_fighter2]:
-					col1.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
-					col2.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+					col1.markdown("<p style='text-align: center; color:green;'>"+ display_odds1 +"</p>", unsafe_allow_html=True)
+					col2.markdown("<p style='text-align: center; color:red;'>"+display_odds2 +"</p>", unsafe_allow_html=True)
 				else:
-					col1.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
-					col2.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+					col1.markdown("<p style='text-align: center; color:red;'>"+display_odds1 +"</p>", unsafe_allow_html=True)
+					col2.markdown("<p style='text-align: center; color:green;'>"+display_odds2 +"</p>", unsafe_allow_html=True)
 
 				col3.markdown("<p style='text-align: center; font-style:italic;'>"+row['Division']+"</p>", unsafe_allow_html=True)	
 				col3.markdown("<p style='text-align: center;'> <a align='center' href='"+ bsv_link +"'>BSV record </a></p>", unsafe_allow_html=True)	
 				col3.markdown("<p style='text-align: center;'> <br /> </p>", unsafe_allow_html=True)	
 
-		elif pred_choice == 'Completed fights':
+		elif pred_choice == 'Past fights':
 
-			picklefile = open('20220723_final_predictions_bsv_results.pkl', 'rb')
+			picklefile = open('newest_predictions_bsv_results.pkl', 'rb')
 			df_pred = pickle.load(picklefile).round(decimals=2)
 			picklefile.close()	
 
 			odds_fighter1 = 'RC_proba'
 			odds_fighter2 = 'BC_proba'
+
+			if enough_data:
+				df_pred = df_pred.loc[(df_pred['RC_nrecords']>2) & (df_pred['BC_nrecords']>2)]
 
 			st.empty()
 
@@ -233,26 +246,40 @@ if pass_status == True:
 				bsv_link = 'https://whatsonchain.com/tx/' + transaction
 
 				if row['RC_nrecords'] < 3:
-					display_name1 = row['RC'] + ' (*)'
+					display_odds1 = str(row[odds_fighter1]) + ' (*)'
 				else:
-					display_name1 = row['RC']
+					display_odds1 = str(row[odds_fighter1])
 
 				if row['BC_nrecords'] < 3:
-					display_name2 = row['BC'] + ' (*)'
+					display_odds2 = str(row[odds_fighter2]) + ' (*)'
 				else:
-					display_name2 = row['BC']	
+					display_odds2 = str(row[odds_fighter2])	
 
 				
+				display_name1 = row['RC'] 
+				display_name2 = row['BC'] 
+
+				if row['PredictedWinner'] == row['RC']:
+					display_name1 = display_name1 + ' (P)'
+				else:
+					display_name2 = display_name2 + ' (P)'
+
+				if row['Winner'] == row['RC']:
+					display_name1 = display_name1 + ' (W)'
+				else:
+					display_name2 = display_name2 + ' (W)'
+
+
 				col1, col2, col3 = st.columns(3)
 				col1.markdown("<p style='text-align: center;'>"+display_name1+"</p>", unsafe_allow_html=True)
 				col2.markdown("<p style='text-align: center;'>"+display_name2+"</p>", unsafe_allow_html=True)
 
 				if row[odds_fighter1] > row[odds_fighter2]:
-					col1.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
-					col2.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+					col1.markdown("<p style='text-align: center; color:green;'>"+ display_odds1 +"</p>", unsafe_allow_html=True)
+					col2.markdown("<p style='text-align: center; color:red;'>"+display_odds2 +"</p>", unsafe_allow_html=True)
 				else:
-					col1.markdown("<p style='text-align: center; color:red;'>"+str(row[odds_fighter1])+"</p>", unsafe_allow_html=True)
-					col2.markdown("<p style='text-align: center; color:green;'>"+str(row[odds_fighter2])+"</p>", unsafe_allow_html=True)
+					col1.markdown("<p style='text-align: center; color:red;'>"+display_odds1 +"</p>", unsafe_allow_html=True)
+					col2.markdown("<p style='text-align: center; color:green;'>"+display_odds2 +"</p>", unsafe_allow_html=True)
 
 				col3.markdown("<p style='text-align: center; font-style:italic;'>"+row['Division']+"</p>", unsafe_allow_html=True)	
 				col3.markdown("<p style='text-align: center;'> <a align='center' href='"+ bsv_link +"'>BSV record </a></p>", unsafe_allow_html=True)	
@@ -260,58 +287,62 @@ if pass_status == True:
 
 
 	elif subpage == 'cvdemo':
+
+		st.title('Computer vision demo')
+		st.markdown("""---""") 
+
 		st.video('https://www.youtube.com/watch?v=GwbuM0I9tzE')
 
 	else:
-		if weightclass!= '':
-			if fighter == "*** Summary of data set ***":
 
-				st.title(weightclass + " data set")
-				#with st.expander("Show complete data table"):
-				#	st.dataframe(df)
-				col1a, col1b = st.columns(2)
-				col1a.metric("Total fights", df['FightUrl'].nunique())
-				col1b.metric("Total fighters", df['FighterName'].nunique())
-				col1a.metric("Most fights", df['FighterName'].value_counts().index[0])
-				col1b.metric("Most wins", df['Winner'].value_counts().index[0])
+		st.title('Past fights analysis')
 
-			else:
+	
+		if ((weightclass!= '') & (fighter!= '')):
 
-				if sel_fight == '*** Fighter\'s history ***':
-				
-					st.markdown("## Fight history of " + fighter)	
-
-					n_fights = df_fighter['FightUrl'].nunique()
-					n_wins = int(df_fighter['Won'].sum()/3)
-
-					col1a, col1b, col1c = st.columns(3)
-					col1a.metric("Total Fights", n_fights)
-					col1b.metric("Wins", n_wins)
-					col1c.metric("Losses", n_fights-n_wins)
+				df_fighter = df[df['FighterName']==fighter]
+				list_fights = np.sort(df_fighter['Date_formatted'].unique())
+				list_fights = np.hstack(['',list_fights])
+			
+				st.markdown("""---""") 
 
 
-					df_fighter_chronological = df_fighter[df_fighter['Rd']==1].sort_values('Date_formatted')
+				st.markdown("### Data for " + fighter)						
+
+
+				n_fights = df_fighter['FightUrl'].nunique()
+				n_wins = int(df_fighter['Won'].sum()/3)
+
+				col1a, col1b, col1c = st.columns(3)
+				col1a.metric("Total Fights", n_fights)
+				col1b.metric("Wins", n_wins)
+				col1c.metric("Losses", n_fights-n_wins)
+
+
+				df_fighter_chronological = df_fighter[df_fighter['Rd']==1].sort_values('Date_formatted')
 					
-					#with st.expander("Show complete data table"):
-					#	st.dataframe(df_fighter_chronological)
+				#with st.expander("Show complete data table"):
+				#	st.dataframe(df_fighter_chronological)
 
-					fig, ax = plt.subplots(figsize=(10, 2))
-					ax.grid(color='black', ls = '-.', lw = 0.25)
-					ax.set_yticks([0,1])
-					ax.set_yticklabels(['Lost','Won'])
-					ax.set_ylim([-0.25,1.25])
-					fig.patch.set_alpha(0)
+				fig, ax = plt.subplots(figsize=(10, 2))
+				ax.grid(color='black', ls = '-.', lw = 0.25)
+				ax.set_yticks([0,1])
+				ax.set_yticklabels(['Lost','Won'])
+				ax.set_ylim([-0.25,1.25])
+				fig.patch.set_alpha(0)
 
-					ax.plot(df_fighter_chronological['Date_formatted'],df_fighter_chronological['Won'], marker='s', color='crimson')
-					ax.xaxis.label.set_color('white')
-					ax.tick_params(axis='x', colors='white')
-					ax.yaxis.label.set_color('white')
-					ax.tick_params(axis='y', colors='white')
-					st.pyplot(fig)
+				ax.plot(df_fighter_chronological['Date_formatted'],df_fighter_chronological['Won'], marker='s', color='crimson')
+				ax.xaxis.label.set_color('white')
+				ax.tick_params(axis='x', colors='white')
+				ax.yaxis.label.set_color('white')
+				ax.tick_params(axis='y', colors='white')
+				st.pyplot(fig)
 
-				else:
-
-
+				st.markdown("""---""") 
+				
+				sel_fight = st.selectbox("Analyze a specific fight:", list_fights)
+			
+				if sel_fight !='':
 					#st.markdown("### Analyze a specific fight")	
 
 					df_fighter_fight = df_fighter[df_fighter['Date_formatted']==sel_fight]
@@ -319,23 +350,27 @@ if pass_status == True:
 					#st.write(fighturl[0])
 					df_opp = df[(df['FightUrl']==fighturl[0])&(df['FighterName']!=fighter)]
 
-					if df_fighter_fight['Winner'].unique()[0] == fighter:
-						st.success("__Result__: " + fighter + " wins against " + df_opp['FighterName'].unique()[0] 
-							+ " on " + sel_fight.isoformat() + " (" + df_fighter_fight['Event'].unique()[0] + ")")
+					if df_fighter_fight['Winner'].unique()[0] == df_fighter_fight['FighterName'].unique()[0]:
+						subheader_fight = df_fighter_fight['FighterName'].unique()[0] + " (W) vs. " + df_opp['FighterName'].unique()[0] + " (L)"
 					else:
-						st.error("__Result__: " + fighter + " loses against " + df_opp['FighterName'].unique()[0] 
-							+ " on " + sel_fight.isoformat() + " (" + df_fighter_fight['Event'].unique()[0] + ")")
+						subheader_fight = df_fighter_fight['FighterName'].unique()[0] + " (L) vs. " + df_opp['FighterName'].unique()[0] + " (W)"
 
 
-					st.markdown("#### Style analysis by round")
+					st.markdown("<h3 style='text-align: center;'>" + subheader_fight + "</h3>", unsafe_allow_html=True)
 
-					with st.expander("More about the style analysis"):
+					st.markdown("<p style='text-align: center;'> " + df_fighter_fight['Event'].unique()[0] + "</p>", unsafe_allow_html=True)
+					st.markdown("<p style='text-align: center;'> " + df_fighter_fight['Date'].unique()[0] + "</p>", unsafe_allow_html=True) 
+					st.markdown("""---""") 
+
+					st.markdown("##### AI-based style analysis by round")
+
+					with st.expander("More about the style analysis", expanded=True):
 						st.info("These plots depict the styles of both opponents accross the three rounds of a fight." +
-							" Styles are classfified using to the following five dimensions: Ground fight, clinch fight, distance fight, aggressiveness and grappling." +
-							" Both fighters were rated in each round with respect to these five dimensions." +
-							" The ratings were obtained by running machine learning methods (specifically clustering algorithms) on the entire data set including all fighters and metrics." +
-							" The metrics comprised both standard features (such as number of strikes etc.) as well as features engineered using domain expertise and Combat IQ's propietary formulas." +
-							" The output of the clustering method is the classification of each fighter to the different levels of the five dimensions (from 1 = poor to 3 = strong).")
+								" Styles are classfified using to the following five dimensions: Ground fight, clinch fight, distance fight, aggressiveness and grappling." +
+								" Both fighters were rated in each round with respect to these five dimensions." +
+								" The ratings were obtained by running machine learning methods (specifically clustering algorithms) on the entire data set including all fighters and metrics." +
+								" The metrics comprised both standard features (such as number of strikes etc.) as well as features engineered using domain expertise and Combat IQ's propietary formulas." +
+								" The output of the clustering method is the classification of each fighter to the different levels of the five dimensions (from 1 = poor to 3 = strong).")
 
 
 					figRd1 = plot_clusters(1)
@@ -347,26 +382,27 @@ if pass_status == True:
 					col3b.pyplot(figRd2)
 					col3c.pyplot(figRd3)
 
+					st.markdown("""---""") 
 
-					st.markdown("#### Fight metrics by round")
-					
+					st.markdown("##### Fight metrics by round")
+						
 					#st.dataframe(df_opp)
 					#st.dataframe(df_fighter_fight)
 					col2a, col2b = st.columns(2)
 
 					with col2a:
 						sel_metric = st.selectbox("Select a metric:", ['Strikes', 'SigStrikes',
-							'Takedowns', 'Knockdowns', 'Reversals', 'Ctrl', 'StrikesAttmptd',
-							'SigStrikesAttmptd', 'TakedownsAttmptd', 'SIgStrikes_Head',
-							'SIgStrikes_Body', 'SIgStrikes_Legs', 'SIgStrikes_HeadAttmptd',
-							'SIgStrikes_BodyAttmptd', 'SIgStrikes_LegsAttmptd', 'DTN_SigStrikes',
-							'CLNCH_SigStrikes', 'GND_SigStrikes', 'DTN_SigStrikesAttmptd',
-							'CLNCH_SigStrikesAttmptd', 'GND_SigStrikesAttmptd'])
+								'Takedowns', 'Knockdowns', 'Reversals', 'Ctrl', 'StrikesAttmptd',
+								'SigStrikesAttmptd', 'TakedownsAttmptd', 'SIgStrikes_Head',
+								'SIgStrikes_Body', 'SIgStrikes_Legs', 'SIgStrikes_HeadAttmptd',
+								'SIgStrikes_BodyAttmptd', 'SIgStrikes_LegsAttmptd', 'DTN_SigStrikes',
+								'CLNCH_SigStrikes', 'GND_SigStrikes', 'DTN_SigStrikesAttmptd',
+								'CLNCH_SigStrikesAttmptd', 'GND_SigStrikesAttmptd'])
 
 						with st.expander("More about the fight metrics"):
-							st.info("This tool can be used to visualize and compare a specific fight metric for both opponents." +
-									" As of now, all standard metrics (such as number of strikes etc.) are available." +
-									" In order to protect Combat IQ's intellectual property, the engineered features are currently not displayed.")
+								st.info("This tool can be used to visualize and compare a specific fight metric for both opponents." +
+										" As of now, all standard metrics (such as number of strikes etc.) are available." +
+										" In order to protect Combat IQ's intellectual property, the engineered features are currently not displayed.")
 
 					metrics_fighter = df_fighter_fight[sel_metric]
 					metrics_opp = df_opp[sel_metric]
@@ -385,7 +421,7 @@ if pass_status == True:
 					plt.legend([fighter, df_opp['FighterName'].unique()[0]],bbox_to_anchor =(1.0, 1.2))
 					fig.patch.set_alpha(0)
 					
-					
+						
 					col2b.pyplot(fig)
 		else:
 			st.markdown("#### Please select a weightclass from the dropdown menu on the left")
