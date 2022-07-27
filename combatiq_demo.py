@@ -310,14 +310,14 @@ if st.session_state['unlocked']  == True:
 				st.markdown("""---""") 
 
 
-				st.markdown("### Data for " + fighter)						
+				st.markdown("### Data available for " + fighter)						
 
 
 				n_fights = df_fighter['FightUrl'].nunique()
 				n_wins = int(df_fighter['Won'].sum()/3)
 
 				col1a, col1b, col1c = st.columns(3)
-				col1a.metric("Total Fights", n_fights)
+				col1a.metric("Fights in database", n_fights)
 				col1b.metric("Wins", n_wins)
 				col1c.metric("Losses", n_fights-n_wins)
 
